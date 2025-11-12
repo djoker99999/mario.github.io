@@ -13,7 +13,7 @@
 
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: url('https://img.freepik.com/vecteurs-libre/fond-jeu-video-dessine-main_23-2150307800.jpg?semt=ais_hybrid&w=740&q=80') no-repeat center center fixed;
+      background: url('https://img.freepik.com/vecteurs-libre/fond-jeu-video-dessune-main_23-2150307800.jpg?semt=ais_hybrid&w=740&q=80') no-repeat center center fixed;
       background-size: cover;
       color: #ffffff;
       text-align: center;
@@ -1056,6 +1056,38 @@
       box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
       background: linear-gradient(45deg, #FFA500, #FF8C00);
     }
+
+    /* Boutons de sauvegarde */
+    .save-buttons {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin: 10px 0;
+    }
+
+    .save-btn {
+      background: linear-gradient(45deg, #4CAF50, #8BC34A);
+    }
+
+    .save-btn:hover {
+      background: linear-gradient(45deg, #45a049, #7cb342);
+    }
+
+    .load-btn {
+      background: linear-gradient(45deg, #2196F3, #03A9F4);
+    }
+
+    .load-btn:hover {
+      background: linear-gradient(45deg, #1e88e5, #039be5);
+    }
+
+    .reset-save-btn {
+      background: linear-gradient(45deg, #F44336, #E91E63);
+    }
+
+    .reset-save-btn:hover {
+      background: linear-gradient(45deg, #e53935, #d81b60);
+    }
   </style>
 </head>
 <body>
@@ -1075,7 +1107,7 @@
     <!-- Barre de jackpot discrète -->
     <div class="jackpot-container">
       <div class="jackpot-title">JACKPOT</div>
-      <div class="jackpot-amount" id="jackpotAmount">2 580 🌹</div>
+      <div class="jackpot-amount" id="jackpotAmount">1 000 🌹</div>
       <div class="jackpot-progress-container">
         <div class="jackpot-progress-bar" id="jackpotProgressBar" style="width: 0%"></div>
       </div>
@@ -1133,6 +1165,13 @@
       <button id="resetBtn">Nouvelle Brique</button>
     </div>
 
+    <!-- Boutons de sauvegarde -->
+    <div class="save-buttons">
+      <button id="saveBtn" class="save-btn">Sauvegarder</button>
+      <button id="loadBtn" class="load-btn">Charger</button>
+      <button id="resetSaveBtn" class="reset-save-btn">Réinitialiser</button>
+    </div>
+
     <p id="message"></p>
   </div>
 
@@ -1157,7 +1196,7 @@
   <div class="jackpot-winner" id="jackpotWinner">
     <div class="jackpot-winner-content">
       <h3>🎰 JACKPOT GAGNÉ ! 🎰</h3>
-      <div class="jackpot-winner-amount" id="jackpotWinnerAmount">1000 🌹</div>
+      <div class="jackpot-winner-amount" id="jackpotWinnerAmount">1 000 🌹</div>
       <p class="jackpot-winner-message">Félicitations ! Vous avez remporté le jackpot !</p>
       <button class="jackpot-close-btn" id="jackpotCloseBtn">Continuer</button>
     </div>
@@ -1175,7 +1214,7 @@
     let currentDifficulty = "noob";
     
     // Variables pour le jackpot
-    let jackpotAmount = 2580;
+    let jackpotAmount = 1000;
     let jackpotProgress = 0;
     let jackpotHitsCounter = 0;
     let recentWinners = [];
@@ -1207,6 +1246,11 @@
     // Éléments du tableau des gains
     const winnersTable = document.getElementById("winnersTable");
     const winnersList = document.getElementById("winnersList");
+    
+    // Boutons de sauvegarde
+    const saveBtn = document.getElementById("saveBtn");
+    const loadBtn = document.getElementById("loadBtn");
+    const resetSaveBtn = document.getElementById("resetSaveBtn");
 
     const impactEffects = ["💥", "🔥", "⭐", "💫", "✨", "💢"];
 
@@ -1769,9 +1813,114 @@
       }
     }
 
+    // FONCTIONS DE SAUVEGARDE
+    function saveGame() {
+      try {
+        const gameData = {
+          jackpotAmount: jackpotAmount,
+          jackpotHitsCounter: jackpotHitsCounter,
+          jackpotProgress: jackpotProgress,
+          recentWinners: recentWinners,
+          saveDate: new Date().toISOString()
+        };
+        
+        localStorage.setItem('marioBrickGameSave', JSON.stringify(gameData));
+        
+        // Afficher un message de confirmation
+        const originalText = saveBtn.textContent;
+        saveBtn.textContent = "✓ Sauvegardé !";
+        saveBtn.style.background = "linear-gradient(45deg, #4CAF50, #8BC34A)";
+        
+        setTimeout(() => {
+          saveBtn.textContent = originalText;
+          saveBtn.style.background = "linear-gradient(45deg, #4CAF50, #8BC34A)";
+        }, 2000);
+        
+        console.log("Jeu sauvegardé avec succès !");
+      } catch (error) {
+        console.error("Erreur lors de la sauvegarde :", error);
+        alert("Erreur lors de la sauvegarde. Vérifiez que votre navigateur autorise le stockage local.");
+      }
+    }
+
+    function loadGame() {
+      try {
+        const savedData = localStorage.getItem('marioBrickGameSave');
+        
+        if (!savedData) {
+          alert("Aucune sauvegarde trouvée !");
+          return;
+        }
+        
+        const gameData = JSON.parse(savedData);
+        
+        // Charger les données du jackpot
+        jackpotAmount = gameData.jackpotAmount || 1000;
+        jackpotHitsCounter = gameData.jackpotHitsCounter || 0;
+        jackpotProgress = gameData.jackpotProgress || 0;
+        recentWinners = gameData.recentWinners || [];
+        
+        // Mettre à jour l'affichage
+        updateJackpot();
+        updateWinnersTable();
+        
+        // Afficher un message de confirmation
+        const originalText = loadBtn.textContent;
+        loadBtn.textContent = "✓ Chargé !";
+        loadBtn.style.background = "linear-gradient(45deg, #2196F3, #03A9F4)";
+        
+        setTimeout(() => {
+          loadBtn.textContent = originalText;
+          loadBtn.style.background = "linear-gradient(45deg, #2196F3, #03A9F4)";
+        }, 2000);
+        
+        console.log("Jeu chargé avec succès !");
+      } catch (error) {
+        console.error("Erreur lors du chargement :", error);
+        alert("Erreur lors du chargement de la sauvegarde. Le fichier peut être corrompu.");
+      }
+    }
+
+    function resetSave() {
+      if (confirm("Êtes-vous sûr de vouloir réinitialiser la sauvegarde ? Cette action est irréversible.")) {
+        try {
+          localStorage.removeItem('marioBrickGameSave');
+          
+          // Réinitialiser les données du jackpot
+          jackpotAmount = 1000;
+          jackpotHitsCounter = 0;
+          jackpotProgress = 0;
+          recentWinners = [];
+          
+          // Mettre à jour l'affichage
+          updateJackpot();
+          updateWinnersTable();
+          
+          // Afficher un message de confirmation
+          const originalText = resetSaveBtn.textContent;
+          resetSaveBtn.textContent = "✓ Réinitialisé !";
+          resetSaveBtn.style.background = "linear-gradient(45deg, #F44336, #E91E63)";
+          
+          setTimeout(() => {
+            resetSaveBtn.textContent = originalText;
+            resetSaveBtn.style.background = "linear-gradient(45deg, #F44336, #E91E63)";
+          }, 2000);
+          
+          console.log("Sauvegarde réinitialisée !");
+        } catch (error) {
+          console.error("Erreur lors de la réinitialisation :", error);
+        }
+      }
+    }
+
     // Événements CORRIGÉS
     document.getElementById("attackBtn").addEventListener("click", attack);
     document.getElementById("resetBtn").addEventListener("click", initGame);
+
+    // Boutons de sauvegarde
+    saveBtn.addEventListener("click", saveGame);
+    loadBtn.addEventListener("click", loadGame);
+    resetSaveBtn.addEventListener("click", resetSave);
 
     document.getElementById("mode1").addEventListener("click", () => setAttackMode(1));
     document.getElementById("mode10").addEventListener("click", () => setAttackMode(10));
@@ -1856,6 +2005,14 @@
         case 'D':
           setDifficulty('hard');
           break;
+        case 's':
+        case 'S':
+          saveGame();
+          break;
+        case 'l':
+        case 'L':
+          loadGame();
+          break;
         case 'Escape':
           closeVictoryPopup();
           closeJackpotPopup();
@@ -1878,6 +2035,15 @@
     
     // Rendre le tableau des gains déplaçable
     makeElementDraggable(winnersTable);
+    
+    // Charger automatiquement la sauvegarde au démarrage
+    window.addEventListener('load', function() {
+      const savedData = localStorage.getItem('marioBrickGameSave');
+      if (savedData) {
+        console.log("Sauvegarde détectée, chargement automatique...");
+        loadGame();
+      }
+    });
     
     initGame();
   </script>
